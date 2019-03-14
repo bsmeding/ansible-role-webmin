@@ -55,7 +55,7 @@
     regexp: "{{ item.regexp }}"
     replace: "{{ item.replace }}"
   with_items:
-    - { dest: "/etc/webmin/miniserv.conf", regexp: "^listen=.*$", replace: "listen={{ webmin_listen }}" }
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^listen=.*$", replace: "listen={{ webmin_port }}" }
     - { dest: "/etc/webmin/miniserv.conf", regexp: "^port=.*$", replace: "port={{ webmin_port }}" }
     - { dest: "/etc/webmin/miniserv.conf", regexp: "^ssl=.*$", replace: "ssl={{ webmin_ssl }}" }
   notify: restart webmin
