@@ -9,4 +9,4 @@ webmin_port: "10000"
 webmin_ssl: "1"
 
 #If behind reverse proxy, add referer URL here
-reverse_proxy_referer: ''
+webmin_reverse_proxy_referer: ''

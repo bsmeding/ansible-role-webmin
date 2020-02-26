@@ -67,8 +67,8 @@
     regexp: "{{ item.regexp }}"
     replace: "{{ item.replace }}"
   with_items:
-    - { dest: "/etc/webmin/miniserv.conf", regexp: "^referers=.*$", replace: "referers={{ reverse_proxy_referer }}" }
-  when: reverse_proxy_referer is defined and reverse_proxy_referer|length>10
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^referers=.*$", replace: "referers={{ webmin_reverse_proxy_referer }}" }
+  when: webmin_reverse_proxy_referer is defined and webmin_reverse_proxy_referer|length>10
   notify: restart webmin
   tags: [ webmin ]  
 
