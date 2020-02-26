@@ -61,6 +61,17 @@
   notify: restart webmin
   tags: [ webmin ]
 
+- name: set reverse proxy referer
+  replace:
+    dest: "{{ item.dest }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^referers=.*$", replace: "referers={{ reverse_proxy_referer }}" }
+  when: reverse_proxy_referer is defined and reverse_proxy_referer|length>10
+  notify: restart webmin
+  tags: [ webmin ]  
+
 - name: Wait 10 seconds for port {{ webmin_port }} to start up
   wait_for:
     port: "{{ webmin_port }}"
