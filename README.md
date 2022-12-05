@@ -1,3 +1,8 @@
+DEPCRECATED
+===========
+This role is deprecated as there is now a package to use,  named Cockpit for almost every OS
+
+
 Ansible Role for Webmin
 =======================
 
