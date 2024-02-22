@@ -1,0 +1,7 @@
+---
+# handlers for webmin installation
+
+- name: restart webmin
+  service:
+    name: "webmin"
+    state: "restarted"

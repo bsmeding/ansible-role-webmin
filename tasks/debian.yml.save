@@ -1,0 +1,42 @@
+---
+# tasks file for hswong3i.webmin
+
+- name: apt-key add
+  apt_key:
+    url: "{{ item.url }}"
+    state: "{{ item.state }}"
+  with_items:
+    - { state: "present", url: "http://www.webmin.com/jcameron-key.asc" }
+  notify: restart webmin
+  tags: [ webmin ]
+
+- name: apt-add-repository
+  apt_repository:
+    repo: "{{ item.repo }}"
+    state: "{{ item.state }}"
+  with_items:
+    - { state: "present", repo: "deb http://download.webmin.com/download/repository sarge contrib" }
+    - { state: "present", repo: "deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib" }
+  notify: restart webmin
+  tags: [ webmin ]
+
+- name: apt-get install
+  apt:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  with_items:
+    - { state: "latest", name: "webmin" }
+  notify: restart webmin
+  tags: [ webmin ]
+
+- name: replace in file
+  replace:
+    dest: "{{ item.dest }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^listen=.*$", replace: "listen={{ webmin_listen }}" }
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^port=.*$", replace: "port={{ webmin_port }}" }
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^ssl=.*$", replace: "ssl={{ webmin_ssl }}" }
+  notify: restart webmin
+  tags: [ webmin ]

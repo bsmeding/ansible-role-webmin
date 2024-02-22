@@ -1,0 +1,58 @@
+---
+# tasks file for webmin on Ubuntu
+
+- name: apt-key add
+  apt_key:
+    url: "{{ item.url }}"
+    state: "{{ item.state }}"
+  with_items:
+    - { state: "present", url: "http://www.webmin.com/jcameron-key.asc" }
+  notify: restart webmin
+  tags: [ webmin ]
+
+- name: apt-add-repository
+  apt_repository:
+    repo: "{{ item.repo }}"
+    state: "{{ item.state }}"
+  with_items:
+    - { state: "present", repo: "deb http://download.webmin.com/download/repository sarge contrib" }
+    - { state: "present", repo: "deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib" }
+  notify: restart webmin
+  tags: [ webmin ]
+
+- name: apt-get install
+  apt:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  with_items:
+    - { state: "latest", name: "webmin" }
+  notify: restart webmin
+  tags: [ webmin ]
+
+- name: replace in file
+  replace:
+    dest: "{{ item.dest }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^listen=.*$", replace: "listen={{ webmin_listen }}" }
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^port=.*$", replace: "port={{ webmin_port }}" }
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^ssl=.*$", replace: "ssl={{ webmin_ssl }}" }
+  notify: restart webmin
+  tags: [ webmin ]
+
+- name: set reverse proxy referer
+  replace:
+    dest: "{{ item.dest }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { dest: "/etc/webmin/miniserv.conf", regexp: "^referers=.*$", replace: "referers={{ webmin_reverse_proxy_referer }}" }
+  when: webmin_reverse_proxy_referer is defined and webmin_reverse_proxy_referer|length>10
+  notify: restart webmin
+  tags: [ webmin ]  
+
+- name: Wait 10 seconds for port {{ webmin_port }} to start up
+  wait_for:
+    port: "{{ webmin_port }}"
+    delay: 10    

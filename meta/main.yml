@@ -1,0 +1,20 @@
+---
+
+galaxy_info:
+  role_name: Webmin
+  author: Bart Smeding <devops@bartsmeding.nl>
+  description: Ansible Role for Webmin Ubuntu/Debian.
+  license: MIT
+  min_ansible_version: 2.2
+  platforms:
+    - name: Debian
+      versions:
+        - jessie
+        - stretch
+    - name: Ubuntu
+      versions:
+        - trusty
+        - xenial
+  galaxy_tags:
+    - system
+dependencies: []
