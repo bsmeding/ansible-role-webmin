@@ -1,0 +1,70 @@
+---
+- name: Install dependencies
+  ansible.builtin.apt:
+    name:
+      - perl
+      - libnet-ssleay-perl
+      - openssl
+      - libauthen-pam-perl
+      - libpam-runtime
+      - libio-pty-perl
+      - apt-show-versions
+      - python3
+      - apt-transport-https
+    state: present
+    update_cache: true
+
+- name: Download Webmin GPG key
+  ansible.builtin.get_url:
+    url: http://www.webmin.com/jcameron-key.asc
+    dest: /usr/share/keyrings/jcameron-key.asc
+    mode: '0644'
+
+- name: Add Webmin repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/jcameron-key.asc] http://download.webmin.com/download/repository sarge contrib"
+    state: present
+    filename: webmin
+
+- name: Install Webmin
+  ansible.builtin.apt:
+    name: webmin
+    state: latest
+    update_cache: true
+  notify: restart webmin
+
+- name: Configure Webmin Listen Address
+  ansible.builtin.lineinfile:
+    path: /etc/webmin/miniserv.conf
+    regexp: "^listen="
+    line: "listen={{ webmin_listen }}"
+  notify: restart webmin
+
+- name: Configure Webmin Port
+  ansible.builtin.lineinfile:
+    path: /etc/webmin/miniserv.conf
+    regexp: "^port="
+    line: "port={{ webmin_port }}"
+  notify: restart webmin
+
+- name: Configure Webmin SSL
+  ansible.builtin.lineinfile:
+    path: /etc/webmin/miniserv.conf
+    regexp: "^ssl="
+    line: "ssl={{ webmin_ssl }}"
+  notify: restart webmin
+
+- name: Configure Webmin Reverse Proxy Referer
+  ansible.builtin.lineinfile:
+    path: /etc/webmin/miniserv.conf
+    regexp: "^referers="
+    line: "referers={{ webmin_reverse_proxy_referer }}"
+  when: webmin_reverse_proxy_referer is defined and webmin_reverse_proxy_referer | length > 0
+  notify: restart webmin
+
+- name: Wait for Webmin to start
+  ansible.builtin.wait_for:
+    port: "{{ webmin_port }}"
+    delay: 5
+    timeout: 60
+

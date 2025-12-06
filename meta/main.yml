@@ -1,8 +1,8 @@
 ---
 
 galaxy_info:
-  role_name: Webmin
-  author: Bart Smeding <devops@bartsmeding.nl>
+  role_name: webmin
+  author: bsmeding
   description: Ansible Role for Webmin Ubuntu/Debian.
   license: MIT
   min_ansible_version: 2.2

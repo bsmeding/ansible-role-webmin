@@ -1,7 +1,4 @@
 ---
-# tasks file for ansible-lighttpd
-- include_tasks: debian.yml
-  when: ansible_os_family == "Debian"
-
-- include_tasks: ubuntu.yml
-  when: ansible_os_family == "Ubuntu"
+# tasks file for ansible-role-webmin
+- name: Include installation tasks
+  include_tasks: install.yml
