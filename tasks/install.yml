@@ -16,7 +16,7 @@
 
 - name: Download Webmin GPG key
   ansible.builtin.get_url:
-    url: http://www.webmin.com/jcameron-key.asc
+    url: https://download.webmin.com/jcameron-key.asc
     dest: /usr/share/keyrings/jcameron-key.asc
     mode: '0644'
 

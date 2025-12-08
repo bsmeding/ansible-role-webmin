@@ -1,0 +1,16 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if Webmin port is listening
+      ansible.builtin.wait_for:
+        port: 10000
+        timeout: 60
+
+    - name: Check Webmin status
+      ansible.builtin.command: systemctl status webmin
+      register: webmin_status
+      changed_when: false
+      failed_when: webmin_status.rc != 0
+
