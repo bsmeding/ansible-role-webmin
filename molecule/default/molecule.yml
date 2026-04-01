@@ -9,7 +9,6 @@ driver:
 platforms:
   - name: instance
     image: "bsmeding/ansible_cicd_${MOLECULE_DISTRO:-ubuntu2404}:latest"
-    platform: linux/amd64
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
