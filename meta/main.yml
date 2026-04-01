@@ -3,18 +3,23 @@
 galaxy_info:
   role_name: webmin
   author: bsmeding
-  description: Ansible Role for Webmin Ubuntu/Debian.
+  description: Ansible role to install and configure Webmin.
   license: MIT
-  min_ansible_version: 2.2
+  min_ansible_version: "2.15"
   platforms:
     - name: Debian
       versions:
-        - jessie
-        - stretch
+        - bookworm
+        - trixie
     - name: Ubuntu
       versions:
-        - trusty
-        - xenial
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "9"
   galaxy_tags:
+    - webmin
+    - administration
     - system
 dependencies: []

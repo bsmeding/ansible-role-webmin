@@ -1,7 +1,16 @@
 ---
 - name: Converge
   hosts: all
+  gather_facts: false
   tasks:
+    - name: Ensure Ansible remote tmp exists
+      ansible.builtin.raw: >-
+        mkdir -p /var/tmp/.ansible && chmod 1777 /var/tmp/.ansible
+      changed_when: false
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
@@ -11,4 +20,3 @@
     - name: Include the role
       ansible.builtin.include_role:
         name: bsmeding.webmin
-

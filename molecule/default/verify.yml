@@ -13,4 +13,3 @@
       register: webmin_status
       changed_when: false
       failed_when: webmin_status.rc != 0
-

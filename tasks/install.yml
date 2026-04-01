@@ -1,37 +1,71 @@
 ---
-- name: Install dependencies
-  ansible.builtin.apt:
-    name:
-      - perl
-      - libnet-ssleay-perl
-      - openssl
-      - libauthen-pam-perl
-      - libpam-runtime
-      - libio-pty-perl
-      - apt-show-versions
-      - python3
-      - apt-transport-https
-    state: present
-    update_cache: true
+- name: Ensure Webmin is supported on this platform
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == 'Debian' or ansible_distribution == 'Rocky'
+    fail_msg: "This role supports Debian, Ubuntu and Rocky Linux."
 
-- name: Download Webmin GPG key
-  ansible.builtin.get_url:
-    url: https://download.webmin.com/jcameron-key.asc
-    dest: /usr/share/keyrings/jcameron-key.asc
-    mode: '0644'
+- name: Install Webmin on Debian/Ubuntu
+  when: ansible_os_family == 'Debian'
+  block:
+    - name: Install Debian dependencies
+      ansible.builtin.apt:
+        name:
+          - perl
+          - libnet-ssleay-perl
+          - openssl
+          - libauthen-pam-perl
+          - libpam-runtime
+          - libio-pty-perl
+          - apt-show-versions
+          - python3
+        state: present
+        update_cache: true
 
-- name: Add Webmin repository
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/jcameron-key.asc] http://download.webmin.com/download/repository sarge contrib"
-    state: present
-    filename: webmin
+    - name: Download Webmin APT signing key
+      ansible.builtin.get_url:
+        url: https://download.webmin.com/jcameron-key.asc
+        dest: /usr/share/keyrings/webmin.asc
+        mode: '0644'
 
-- name: Install Webmin
-  ansible.builtin.apt:
-    name: webmin
-    state: latest
-    update_cache: true
-  notify: restart webmin
+    - name: Add Webmin APT repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [signed-by=/usr/share/keyrings/webmin.asc]
+          https://download.webmin.com/download/repository sarge contrib
+        state: present
+        filename: webmin
+        update_cache: true
+
+    - name: Install Webmin package on Debian/Ubuntu
+      ansible.builtin.apt:
+        name: webmin
+        state: present
+        update_cache: true
+      notify: restart webmin
+
+- name: Install Webmin on Rocky Linux
+  when: ansible_distribution == 'Rocky'
+  block:
+    - name: Import Webmin RPM signing key
+      ansible.builtin.rpm_key:
+        key: https://download.webmin.com/jcameron-key.asc
+        state: present
+
+    - name: Add Webmin YUM repository
+      ansible.builtin.yum_repository:
+        name: webmin
+        description: Webmin repository
+        baseurl: https://download.webmin.com/download/yum
+        enabled: true
+        gpgcheck: true
+        gpgkey: https://download.webmin.com/jcameron-key.asc
+
+    - name: Install Webmin package on Rocky Linux
+      ansible.builtin.dnf:
+        name: webmin
+        state: present
+      notify: restart webmin
 
 - name: Configure Webmin Listen Address
   ansible.builtin.lineinfile:
@@ -59,7 +93,9 @@
     path: /etc/webmin/miniserv.conf
     regexp: "^referers="
     line: "referers={{ webmin_reverse_proxy_referer }}"
-  when: webmin_reverse_proxy_referer is defined and webmin_reverse_proxy_referer | length > 0
+  when:
+    - webmin_reverse_proxy_referer is defined
+    - webmin_reverse_proxy_referer | length > 0
   notify: restart webmin
 
 - name: Wait for Webmin to start
@@ -67,4 +103,3 @@
     port: "{{ webmin_port }}"
     delay: 5
     timeout: 60
-
