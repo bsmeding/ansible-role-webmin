@@ -2,11 +2,11 @@
 - name: Ensure Webmin is supported on this platform
   ansible.builtin.assert:
     that:
-      - ansible_os_family == 'Debian' or ansible_distribution == 'Rocky'
+      - ansible_facts.os_family == 'Debian' or ansible_facts.distribution == 'Rocky'
     fail_msg: "This role supports Debian, Ubuntu and Rocky Linux."
 
 - name: Install Webmin on Debian/Ubuntu
-  when: ansible_os_family == 'Debian'
+  when: ansible_facts.os_family == 'Debian'
   block:
     - name: Install Debian dependencies
       ansible.builtin.apt:
@@ -19,22 +19,55 @@
           - libio-pty-perl
           - apt-show-versions
           - python3
+          - gnupg
+          - ca-certificates
         state: present
         update_cache: true
 
-    - name: Download Webmin APT signing key
+    - name: Remove legacy Webmin APT repository files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/webmin.list
+        - /etc/apt/sources.list.d/webmin-prerelease.list
+
+    - name: Check if /etc/apt/sources.list exists
+      ansible.builtin.stat:
+        path: /etc/apt/sources.list
+      register: apt_sources_list_file
+
+    - name: Remove legacy Webmin repository entries from sources.list
+      ansible.builtin.lineinfile:
+        path: /etc/apt/sources.list
+        regexp: '^deb .*download\.webmin\.com/download/repository.*$'
+        state: absent
+      when: apt_sources_list_file.stat.exists
+
+    - name: Download Webmin developers key
       ansible.builtin.get_url:
-        url: https://download.webmin.com/jcameron-key.asc
-        dest: /usr/share/keyrings/webmin.asc
+        url: https://download.webmin.com/developers-key.asc
+        dest: /usr/share/keyrings/debian-webmin-developers.asc
         mode: '0644'
 
-    - name: Add Webmin APT repository
+    - name: Convert Webmin developers key to keyring format
+      ansible.builtin.command:
+        argv:
+          - gpg
+          - --dearmor
+          - --yes
+          - --output
+          - /usr/share/keyrings/debian-webmin-developers.gpg
+          - /usr/share/keyrings/debian-webmin-developers.asc
+      changed_when: false
+
+    - name: Add Webmin stable APT repository
       ansible.builtin.apt_repository:
         repo: >-
-          deb [signed-by=/usr/share/keyrings/webmin.asc]
-          https://download.webmin.com/download/repository sarge contrib
+          deb [signed-by=/usr/share/keyrings/debian-webmin-developers.gpg]
+          https://download.webmin.com/download/newkey/repository stable contrib
         state: present
-        filename: webmin
+        filename: webmin-stable
         update_cache: true
 
     - name: Install Webmin package on Debian/Ubuntu
@@ -45,7 +78,7 @@
       notify: restart webmin
 
 - name: Install Webmin on Rocky Linux
-  when: ansible_distribution == 'Rocky'
+  when: ansible_facts.distribution == 'Rocky'
   block:
     - name: Import Webmin RPM signing key
       ansible.builtin.rpm_key:

@@ -45,5 +45,5 @@ Example Playbook
 Notes
 -----
 
-- Debian/Ubuntu install uses the official Webmin APT repository.
+- Debian/Ubuntu install uses the official Webmin `newkey` APT repository.
 - Rocky Linux install uses the official Webmin YUM repository.
