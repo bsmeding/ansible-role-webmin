@@ -1,7 +1,27 @@
 ---
 # handlers for webmin installation
 
+# Webmin often ships SysV /etc/init.d/webmin only; systemd may not expose a
+# native webmin.service yet (common in Docker/Molecule), so service: fails.
 - name: restart webmin
-  service:
-    name: "webmin"
-    state: "restarted"
+  ansible.builtin.shell: |
+    set -e
+    if [ -x /etc/init.d/webmin ]; then
+      /etc/init.d/webmin restart
+      exit 0
+    fi
+    if command -v systemctl >/dev/null 2>&1 \
+        && systemctl cat webmin.service >/dev/null 2>&1; then
+      systemctl daemon-reload || true
+      systemctl restart webmin
+      exit 0
+    fi
+    if [ -x /etc/webmin/restart ]; then
+      /etc/webmin/restart
+      exit 0
+    fi
+    echo "webmin: no restart method found" >&2
+    exit 1
+  args:
+    executable: /bin/bash
+  changed_when: true
