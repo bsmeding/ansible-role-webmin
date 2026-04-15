@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: 'bsmeding.webmin'
 
@@ -47,7 +47,7 @@ jobs:
           - rockylinux9
     steps:
       - name: Check out the codebase
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: 'bsmeding.webmin'
 
